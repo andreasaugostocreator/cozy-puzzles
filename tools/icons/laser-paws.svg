@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF6EA"/><stop offset="1" stop-color="#F9D6B3"/>
+    </linearGradient>
+    <radialGradient id="window" cx="0.78" cy="0.12" r="0.6">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".85"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fur" cx="0.45" cy="0.28" r="0.8">
+      <stop offset="0" stop-color="#FFCB91"/><stop offset=".55" stop-color="#F5A15E"/><stop offset="1" stop-color="#E0843F"/>
+    </radialGradient>
+    <radialGradient id="body" cx="0.5" cy="0.15" r="0.9">
+      <stop offset="0" stop-color="#F7A967"/><stop offset="1" stop-color="#D9783A"/>
+    </radialGradient>
+    <linearGradient id="earIn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F59AA0"/><stop offset="1" stop-color="#FBC9BC"/>
+    </linearGradient>
+    <radialGradient id="iris" cx="0.4" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#C8F0A0"/><stop offset=".6" stop-color="#78C46E"/><stop offset="1" stop-color="#3F8F55"/>
+    </radialGradient>
+    <linearGradient id="nose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFA3AE"/><stop offset="1" stop-color="#E86F82"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E9F7FF"/><stop offset=".45" stop-color="#A9D8EE"/><stop offset="1" stop-color="#6FB3D6"/>
+    </linearGradient>
+    <radialGradient id="dot" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset=".18" stop-color="#FFD2D6"/><stop offset=".35" stop-color="#FF3B4E"/>
+      <stop offset=".6" stop-color="#FF3B4E" stop-opacity=".45"/><stop offset="1" stop-color="#FF3B4E" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#8A4B22" flood-opacity=".28"/>
+    </filter>
+  </defs>
+
+  <!-- Room -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#window)"/>
+  <ellipse cx="540" cy="1010" rx="460" ry="120" fill="#E9B98C" opacity=".45"/>
+
+  <!-- Laser beam: in from the top-left, off the mirror, down to the dot -->
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <polyline points="-40,95 165,455 268,842" stroke="#FF5A6A" stroke-width="80" opacity=".35" filter="url(#blur)"/>
+    <polyline points="-40,95 165,455 268,842" stroke="#FF3B4E" stroke-width="24" opacity=".9"/>
+    <polyline points="-40,95 165,455 268,842" stroke="#FFFFFF" stroke-width="7" opacity=".95"/>
+  </g>
+
+  <!-- Mirror token -->
+  <g transform="translate(165 455) rotate(-73)" filter="url(#shadow)">
+    <rect x="-128" y="-34" width="256" height="68" rx="30" fill="#FFF8EE" stroke="#E2C8A6" stroke-width="6"/>
+    <rect x="-108" y="-20" width="216" height="22" rx="11" fill="url(#glass)"/>
+    <rect x="-108" y="2" width="216" height="18" rx="9" fill="#A58F7A"/>
+    <rect x="-84" y="-16" width="140" height="6" rx="3" fill="#FFFFFF" opacity=".9"/>
+  </g>
+
+  <!-- Body -->
+  <path d="M820 990 Q990 970 968 790 Q960 740 928 726" stroke="#D9783A" stroke-width="66" stroke-linecap="round" fill="none"/>
+  <path d="M820 990 Q990 970 968 790 Q960 740 928 726" stroke="#F2A465" stroke-width="44" stroke-linecap="round" fill="none"/>
+  <path d="M948 900 L992 896 M958 836 L1000 826" stroke="#C9692F" stroke-width="15" stroke-linecap="round"/>
+  <ellipse cx="600" cy="930" rx="330" ry="250" fill="url(#body)" filter="url(#shadow)"/>
+  <ellipse cx="600" cy="880" rx="150" ry="120" fill="#FFE3C4" opacity=".9"/>
+
+  <!-- Ears -->
+  <path d="M328 352 Q300 140 368 92 Q450 132 500 250 Z" fill="url(#fur)" stroke="#E0843F" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M362 318 Q350 178 380 150 Q430 182 462 258 Z" fill="url(#earIn)"/>
+  <path d="M872 352 Q900 140 832 92 Q750 132 700 250 Z" fill="url(#fur)" stroke="#E0843F" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M838 318 Q850 178 820 150 Q770 182 738 258 Z" fill="url(#earIn)"/>
+  <path d="M372 200 l-24 -22 M388 186 l-14 -32 M828 200 l24 -22 M812 186 l14 -32" stroke="#FFF2E2" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Head -->
+  <g filter="url(#shadow)">
+    <ellipse cx="420" cy="590" rx="170" ry="122" fill="url(#fur)"/>
+    <ellipse cx="780" cy="590" rx="170" ry="122" fill="url(#fur)"/>
+    <ellipse cx="600" cy="470" rx="300" ry="250" fill="url(#fur)"/>
+  </g>
+  <!-- Cheek fluff -->
+  <path d="M262 560 L222 590 L270 600 L240 640 L292 636" fill="#F5A15E"/>
+  <path d="M938 560 L978 590 L930 600 L960 640 L908 636" fill="#F5A15E"/>
+  <!-- Tabby stripes -->
+  <g stroke="#D06F2E" stroke-linecap="round" fill="none">
+    <path d="M600 236 L600 318" stroke-width="24"/>
+    <path d="M538 248 Q548 290 556 330" stroke-width="20"/>
+    <path d="M662 248 Q652 290 644 330" stroke-width="20"/>
+    <path d="M318 448 Q356 452 392 470" stroke-width="16"/>
+    <path d="M310 500 Q350 500 384 514" stroke-width="14"/>
+    <path d="M882 448 Q844 452 808 470" stroke-width="16"/>
+    <path d="M890 500 Q850 500 816 514" stroke-width="14"/>
+  </g>
+
+  <!-- Eyes, looking down-left at the dot -->
+  <g>
+    <ellipse cx="480" cy="452" rx="84" ry="92" fill="#5A3A22"/>
+    <ellipse cx="480" cy="452" rx="76" ry="84" fill="url(#iris)"/>
+    <ellipse cx="458" cy="478" rx="46" ry="64" fill="#24170F"/>
+    <circle cx="502" cy="418" r="22" fill="#FFFFFF"/>
+    <circle cx="444" cy="505" r="9" fill="#FFFFFF" opacity=".85"/>
+    <ellipse cx="720" cy="452" rx="84" ry="92" fill="#5A3A22"/>
+    <ellipse cx="720" cy="452" rx="76" ry="84" fill="url(#iris)"/>
+    <ellipse cx="698" cy="478" rx="46" ry="64" fill="#24170F"/>
+    <circle cx="742" cy="418" r="22" fill="#FFFFFF"/>
+    <circle cx="684" cy="505" r="9" fill="#FFFFFF" opacity=".85"/>
+  </g>
+
+  <!-- Muzzle, nose, mouth -->
+  <ellipse cx="552" cy="608" rx="72" ry="56" fill="#FFF0DC"/>
+  <ellipse cx="648" cy="608" rx="72" ry="56" fill="#FFF0DC"/>
+  <ellipse cx="600" cy="664" rx="52" ry="32" fill="#FFF0DC"/>
+  <path d="M566 556 Q600 544 634 556 Q628 588 600 600 Q572 588 566 556 Z" fill="url(#nose)"/>
+  <ellipse cx="588" cy="560" rx="12" ry="6" fill="#FFFFFF" opacity=".7"/>
+  <path d="M600 600 Q588 636 556 630 M600 600 Q612 636 644 630" stroke="#8A4B2A" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <!-- Whiskers -->
+  <g stroke="#FFFAF2" stroke-width="6" stroke-linecap="round" opacity=".95">
+    <path d="M486 598 L322 566"/><path d="M486 618 L316 626"/><path d="M492 638 L334 680"/>
+    <path d="M714 598 L878 566"/><path d="M714 618 L884 626"/><path d="M708 638 L866 680"/>
+  </g>
+  <!-- Blush -->
+  <ellipse cx="400" cy="580" rx="44" ry="22" fill="#FF8F9C" opacity=".35" filter="url(#soft)"/>
+  <ellipse cx="800" cy="580" rx="44" ry="22" fill="#FF8F9C" opacity=".35" filter="url(#soft)"/>
+
+  <!-- Front paws, one reaching for the dot -->
+  <g filter="url(#shadow)">
+    <ellipse cx="700" cy="842" rx="92" ry="64" fill="#F7AF6E"/>
+    <g transform="rotate(-18 430 820)"><ellipse cx="430" cy="820" rx="96" ry="66" fill="#F7AF6E"/></g>
+  </g>
+  <g stroke="#D9783A" stroke-width="9" stroke-linecap="round">
+    <path d="M672 818 L670 852 M708 814 L708 852 M744 818 L746 852"/>
+    <path d="M384 818 L394 848 M420 804 L428 838 M456 796 L462 830"/>
+  </g>
+
+  <!-- The red dot -->
+  <circle cx="268" cy="842" r="96" fill="url(#dot)"/>
+  <circle cx="268" cy="842" r="22" fill="#FF3B4E"/>
+  <circle cx="262" cy="836" r="8" fill="#FFFFFF"/>
+  <g fill="#FFFFFF">
+    <path d="M168 760 l8 -26 l8 26 l26 8 l-26 8 l-8 26 l-8 -26 l-26 -8 z" opacity=".9"/>
+    <path d="M356 930 l5 -17 l5 17 l17 5 l-17 5 l-5 17 l-5 -17 l-17 -5 z" opacity=".8"/>
+  </g>
+</svg>
