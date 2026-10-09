@@ -1,0 +1,89 @@
+*,*::before,*::after{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;-webkit-text-size-adjust:100%}
+body{margin:0;font-size:14px;overscroll-behavior:none}
+[hidden]{display:none!important}
+.tip{margin:10px 0 0;font-size:13px;color:var(--muted);line-height:1.4}
+
+/* Layout: one-screen phone app. Centred column (max 480px): top bar, board filling the middle, thumb controls underneath. */
+:root{
+  --bg:#E3EADD; --surface:#F5F8F1; --cell:#FBFCF8; --line:#C6D2C0; --ink:#1D2A22; --muted:#5F6F62;
+  --accent:#2C6B48; --accent-ink:#F5F8F1; --tree:#3D8A55; --tree-hi:#74B585; --trunk:#7A5536;
+  --tent:#E29A2C; --tent-dark:#A9640F; --grass:#79A963; --grass-bg:#E5EFDB; --danger:#C2453C; --gold:#D99A1E;
+  --display:"Fredoka","Nunito",ui-rounded,system-ui,sans-serif; --body:"Nunito",ui-rounded,system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#111915; --surface:#19241E; --cell:#1F2C25; --line:#2D3D34; --ink:#E5ECE3; --muted:#93A497;
+  --accent:#6CC08C; --accent-ink:#0F1A14; --tree:#4FA36A; --tree-hi:#86CB98; --trunk:#9C7350;
+  --tent:#F0B04A; --tent-dark:#B8741C; --grass:#6E9C5B; --grass-bg:#22332A; --danger:#EE6B60; --gold:#F0B94A;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#111915; --surface:#19241E; --cell:#1F2C25; --line:#2D3D34; --ink:#E5ECE3; --muted:#93A497;
+  --accent:#6CC08C; --accent-ink:#0F1A14; --tree:#4FA36A; --tree-hi:#86CB98; --trunk:#9C7350;
+  --tent:#F0B04A; --tent-dark:#B8741C; --grass:#6E9C5B; --grass-bg:#22332A; --danger:#EE6B60; --gold:#F0B94A;
+  color-scheme:dark }
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overflow:hidden}
+#app{height:100%;max-width:480px;margin:0 auto;padding-inline:16px;box-sizing:border-box;position:relative}
+.screen{height:100%;display:flex;flex-direction:column;padding-block:12px;box-sizing:border-box}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* Home */
+.home-head{padding-block:20px 8px;display:grid;gap:6px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.home-head h1{font-size:34px;line-height:1.05}
+.home-head p{margin:0;color:var(--muted);font-size:15px;line-height:1.45;max-width:36ch}
+.games{display:grid;gap:14px;margin-top:14px;overflow:auto;min-height:0}
+.game-card{background:var(--surface);border-radius:22px;padding:16px;display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center;border:1px solid var(--line)}
+.game-card svg{width:96px;height:96px;display:block}
+.game-card h2{font-size:24px}
+.game-card p{margin:4px 0 10px;color:var(--muted);font-size:14px;line-height:1.4}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:600;font-size:16px;padding:10px 18px;border-radius:999px}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.home-foot{margin-top:auto;padding-top:14px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
+
+/* Game chrome */
+.bar{display:flex;align-items:center;gap:10px;min-height:44px}
+.icon-btn{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line)}
+.icon-btn svg{width:22px;height:22px}
+.bar-title{flex:1;min-width:0}
+.bar-title h2{font-size:22px;line-height:1.1}
+.bar-title .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stage{flex:1;min-height:0;position:relative;display:grid;place-items:center}
+.controls{display:flex;justify-content:center;gap:10px;padding-top:8px}
+.ctl{display:grid;justify-items:center;gap:2px;min-width:72px;padding:8px 10px;border-radius:16px;background:var(--surface);border:1px solid var(--line);font-size:12px;font-weight:800;color:var(--muted)}
+.ctl svg{width:24px;height:24px;color:var(--ink)}
+.ctl .badge{font-variant-numeric:tabular-nums}
+.hearts{display:flex;gap:3px}
+.hearts svg{width:22px;height:22px}
+
+/* Campsite board */
+.camp-board{display:grid;gap:3px;touch-action:none}
+.camp-board > div{border-radius:7px;display:grid;place-items:center;position:relative}
+.camp-board .c{background:var(--cell);box-shadow:inset 0 0 0 1px var(--line)}
+.camp-board .c.grass{background:var(--grass-bg)}
+.camp-board .c svg{width:82%;height:82%}
+.camp-board .c.tree svg{width:90%;height:90%}
+.camp-board .c.bad{box-shadow:inset 0 0 0 2.5px var(--danger)}
+.camp-board .c.hinted{animation:pulse 1.2s ease-out 2}
+.camp-board .clue{font-family:var(--display);font-weight:600;font-size:var(--fs,18px);color:var(--ink);font-variant-numeric:tabular-nums}
+.camp-board .clue.done{color:var(--muted);opacity:.55}
+.camp-board .clue.over{color:var(--danger)}
+.camp-board.solved .c{transition:background .3s}
+@keyframes pulse{0%{box-shadow:inset 0 0 0 4px var(--gold)}100%{box-shadow:inset 0 0 0 1px var(--line)}}
+
+/* Slide Out canvas */
+#arCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+
+/* Overlay */
+#overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;place-items:center;padding:24px;z-index:10}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:24px 22px;width:min(100%,360px);box-sizing:border-box;display:grid;gap:12px;text-align:center}
+.sheet h3{font-size:26px}
+.sheet p{margin:0;color:var(--muted);line-height:1.45}
+.sheet .big{font-family:var(--display);font-size:56px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.sheet .stack{display:grid;gap:8px;margin-top:4px}
+.ad-box{border:2px dashed var(--line);border-radius:16px;padding:18px;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion: reduce){ .camp-board .c.hinted{animation:none;box-shadow:inset 0 0 0 4px var(--gold)} }

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Slide Out</title>
+<meta name="description" content="Tap arrows off the board.">
+<meta name="theme-color" content="#E3EADD" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111915" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Slide Out">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../assets/icon-slide-out-180.png">
+<link rel="icon" type="image/png" href="../assets/icon-slide-out-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-app="arrows" data-sw="../sw.js">
+<div id="app">
+  <section id="home" class="screen">
+    <div class="home-head">
+      <span class="eyebrow">Cozy logic puzzles</span>
+      <h1>Campsite &amp; Slide Out</h1>
+      <p>Two logic puzzles with endless generated levels. Your progress stays on this phone.</p>
+    </div>
+    <div class="games">
+      <article class="game-card" id="cardCamp">
+        <svg viewBox="0 0 96 96" aria-hidden="true">
+          <rect x="2" y="2" width="92" height="92" rx="18" fill="var(--grass-bg)"/>
+          <g transform="translate(14 12) scale(1.6)"><rect x="10.5" y="15" width="3" height="6" rx="1" fill="var(--trunk)"/><circle cx="12" cy="10" r="7" fill="var(--tree)"/><circle cx="9.5" cy="7.5" r="2.3" fill="var(--tree-hi)"/></g>
+          <g transform="translate(42 44) scale(1.7)"><path d="M12 4 21 19H3Z" fill="var(--tent)"/><path d="M12 10 15.5 19h-7Z" fill="var(--tent-dark)"/></g>
+        </svg>
+        <div>
+          <h2>Campsite</h2>
+          <p>Pitch one tent beside every tree. Tents never touch, and the numbers count tents per row and column.</p>
+          <div class="row">
+            <button class="btn" id="playCamp">Level 1</button>
+            <button class="btn ghost" id="playDaily">Daily</button>
+          </div>
+        </div>
+      </article>
+      <article class="game-card" id="cardArrows">
+        <svg viewBox="0 0 96 96" aria-hidden="true">
+          <rect x="2" y="2" width="92" height="92" rx="18" fill="var(--cell)" stroke="var(--line)"/>
+          <g fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 74V50h24"/><path d="M74 70H58V30"/><path d="M26 22h22"/>
+          </g>
+          <g fill="var(--ink)"><path d="M46 42l12 8-12 8z"/><path d="M50 30l8-12 8 12z"/><path d="M48 14l12 8-12 8z"/></g>
+        </svg>
+        <div>
+          <h2>Slide Out</h2>
+          <p>Tap an arrow and it slides off the board along its head. Blocked arrows cost a heart.</p>
+          <div class="row"><button class="btn" id="playArrows">Level 1</button></div>
+        </div>
+      </article>
+    </div>
+    <p class="tip" id="installTip" hidden>To play it like an app: tap Share in Safari, then “Add to Home Screen”.</p>
+    <div class="home-foot">
+      <span id="hintBank">3 hints saved</span>
+      <button class="btn ghost" id="muteBtn" style="font-size:14px;padding:8px 14px">Sound on</button>
+    </div>
+  </section>
+
+  <section id="camp" class="screen" hidden>
+    <div class="bar">
+      <button class="icon-btn" data-back aria-label="Back to menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="bar-title"><h2 id="campTitle">Level 1</h2><div class="sub" id="campSub">0:00</div></div>
+    </div>
+    <div class="stage" id="campStage"><div class="camp-board" id="campBoard"></div></div>
+    <div class="controls">
+      <button class="ctl" id="campUndo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Undo</button>
+      <button class="ctl" id="campHint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span class="badge" data-hints>Hint · 3</span></button>
+      <button class="ctl" id="campReset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Restart</button>
+    </div>
+  </section>
+
+  <section id="arrows" class="screen" hidden>
+    <div class="bar">
+      <button class="icon-btn" data-back aria-label="Back to menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="bar-title"><h2 id="arTitle">Level 1</h2><div class="sub" id="arSub">0 arrows left</div></div>
+      <div class="hearts" id="arHearts"></div>
+    </div>
+    <div class="stage" id="arStage"><canvas id="arCanvas"></canvas></div>
+    <div class="controls">
+      <button class="ctl" id="arHint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span class="badge" data-hints>Hint · 3</span></button>
+      <button class="ctl" id="arReset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Restart</button>
+    </div>
+  </section>
+
+  <div id="overlay" hidden><div class="sheet" id="sheet"></div></div>
+</div>
+<script src="../assets/game.js"></script>
+</body>
+</html>
