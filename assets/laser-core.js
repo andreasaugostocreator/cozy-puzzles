@@ -52,7 +52,7 @@ function info(L) {
 function trace(L, pieces) {
   const I = info(L), W = L.w, H = L.h;
   const queue = [{ x: L.src.c + 0.5, y: L.src.r + 0.5, c: L.src.c, r: L.src.r, d: L.src.d }];
-  const seen = new Set(), paths = [], visited = [], vset = new Set(), hits = new Set();
+  const seen = new Set(), paths = [], visited = [], vset = new Set(), hits = new Set(), dirIn = new Map();
   let steps = 0;
   while (queue.length) {
     const b = queue.shift();
@@ -67,7 +67,7 @@ function trace(L, pieces) {
       if (seen.has(k * 4 + d)) { end = { t: 'loop', k }; pts.push([nc + 0.5, nr + 0.5]); break; }
       seen.add(k * 4 + d);
       steps++;
-      if (!vset.has(k)) { vset.add(k); visited.push(k); }
+      if (!vset.has(k)) { vset.add(k); visited.push(k); dirIn.set(k, d); }
       if (I.cats.has(k)) hits.add(k);
       c = nc; r = nr;
       const p = pieces.get(k);
@@ -83,7 +83,7 @@ function trace(L, pieces) {
     }
     paths.push({ pts, end });
   }
-  return { paths, visited, vset, hits, steps };
+  return { paths, visited, vset, hits, steps, dirIn };
 }
 
 const allCatsHit = (L, t) => info(L).cats.size === [...info(L).cats].filter(k => t.hits.has(k)).length;
@@ -140,15 +140,18 @@ function solve(L, limit = Infinity, budget = 400000) {
   const kinds = KINDS.filter(k => avail[k]);
   L.fixed.forEach(f => { const k = I.key(f.c, f.r); pieces.set(k, { k: f.k, rot: f.rot }); if (!f.rotatable) decided.add(k); });
   const sols = [], sigs = new Set();
-  let nodes = 0, stopped = false;
+  let nodes = 0, stopped = false, outOfBudget = false;
 
   function dfs() {
     if (stopped) return;
-    if (++nodes > budget || sols.length >= limit) { stopped = true; return; }
+    if (++nodes > budget) { stopped = outOfBudget = true; return; }
+    if (sols.length >= limit) { stopped = true; return; }
     const t = trace(L, pieces);
     let trayLeft = 0;
     for (const k of kinds) trayLeft += avail[k];
+    let catsSoFar = 0;
     for (const k of t.visited) {
+      if (I.cats.has(k)) { catsSoFar++; continue; }
       if (decided.has(k)) continue;
       const fi = I.fixedAt.get(k);
       if (fi !== undefined) {
@@ -164,7 +167,11 @@ function solve(L, limit = Infinity, budget = 400000) {
       for (const kind of kinds) {
         if (stopped || !avail[kind]) continue;
         avail[kind]--;
-        for (let r = 0; r < ROT[kind] && !stopped; r++) { pieces.set(k, { k: kind, rot: r }); dfs(); }
+        for (let r = 0; r < ROT[kind] && !stopped; r++) {
+          // A piece that stops the beam here only works if every cat is already awake.
+          if (!outgoing(kind, r, t.dirIn.get(k)).length && catsSoFar < I.cats.size) continue;
+          pieces.set(k, { k: kind, rot: r }); dfs();
+        }
         pieces.delete(k);
         avail[kind]++;
       }
@@ -190,7 +197,8 @@ function solve(L, limit = Infinity, budget = 400000) {
     if (!sigs.has(sig)) { sigs.add(sig); sols.push(sol); }
   }
   dfs();
-  return { sols, nodes, complete: !stopped };
+  // complete: every solution was found. outOfBudget: gave up early, so the count is unknown.
+  return { sols, nodes, complete: !stopped, outOfBudget };
 }
 
 /** Puts a known solution on the board (hints, tests). Leftover pieces go off the beam. */
@@ -293,8 +301,24 @@ function generate(seed, opts) {
     }
     tray.sort((a, b) => KINDS.indexOf(a) - KINDS.indexOf(b));
     const level = { w: n, h: n, src, cats: [...cats].map(k => [k % n, Math.floor(k / n)]), fixed, tray };
-    const res = solve(level, 2, opts.budget || 150000);
-    if (!res.complete || res.sols.length !== 1 || res.sols[0].unused.length) continue;
+    const intended = new Set(sol.filter(p => !fixed.some(f => f.c === p.c && f.r === p.r)).map(p => `${p.k}@${p.c},${p.r}/${p.rot}`));
+    let res = null;
+    // Repair: while a second answer exists, park a couch where only that answer's beam goes.
+    for (let fix = 0; fix <= (opts.repairs ?? 6); fix++) {
+      cache.delete(level);
+      res = solve(level, 2, opts.budget || 150000);
+      if (res.outOfBudget) break;
+      const alt = res.sols.find(x => x.unused.length || x.placed.length !== intended.size || x.placed.some(p => !intended.has(`${p.k}@${p.c},${p.r}/${p.rot}`)));
+      if (!alt) break;
+      const S = applySolution(level, { placed: alt.placed, fixedRot: alt.fixedRot });
+      const altTrace = traceState(level, S), I = info(level);
+      const spots = [...altTrace.vset].filter(k => !t.vset.has(k) && I.playable.has(k));
+      for (const p of alt.placed) { const k = p.r * n + p.c; if (!t.vset.has(k) && I.playable.has(k) && !spots.includes(k)) spots.push(k); }
+      if (!spots.length) { res = null; break; }
+      const k = pick(spots);
+      level.fixed.push({ k: 'blocker', c: k % n, r: Math.floor(k / n), rot: 0, rotatable: false });
+    }
+    if (!res || res.outOfBudget || res.sols.length !== 1 || res.sols[0].unused.length) continue;
     level.sol = { placed: res.sols[0].placed, fixedRot: res.sols[0].fixedRot };
     level.nodes = res.nodes;
     level.difficulty = difficulty(level);

@@ -457,9 +457,13 @@ function start(n, daily = false) {
   let L;
   if (daily) {
     if (!dailyLevel || dailyLevel.day !== dayKey()) {
+      // Same puzzle for everyone today: the hardest of a few seeded 7×7 candidates.
       const seed = daySeed();
-      L = LC.generate(seed, { n: 6, turns: 4, cats: 3, double: 0.25, fixedShare: 0.3, blockers: 2 }) ||
-          LC.generate(seed + 1, { n: 6, turns: 3, cats: 3, double: 0.2, fixedShare: 0.2, blockers: 2 });
+      for (let i = 0; i < 4; i++) {
+        const c = LC.generate(seed * 10 + i, { n: 7, turns: 5 + (i % 2), cats: 3, double: 0.3, fixedShare: 0.2, blockers: 3, budget: 200000, attempts: 120 });
+        if (c && (!L || c.nodes * c.tray.length > L.nodes * L.tray.length)) L = c;
+      }
+      L = L || LC.generate(seed, { n: 6, turns: 4, cats: 3, double: 0.25, fixedShare: 0.3, blockers: 2 });
       dailyLevel = Object.assign(L, { day: dayKey(), name: 'Daily' });
     }
     L = dailyLevel;

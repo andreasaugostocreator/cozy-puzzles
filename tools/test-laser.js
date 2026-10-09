@@ -51,9 +51,13 @@ levels.forEach((L, i) => {
 });
 // Daily-style generation in the app must stay quick.
 const g0 = Date.now(); let made = 0;
-for (let s = 0; s < 10; s++) if (LC.generate(20261009 + s, { n: 6, turns: 4, cats: 3, double: 0.25, fixedShare: 0.3, blockers: 2 })) made++;
+for (let s = 0; s < 10; s++) {
+  let best = null;
+  for (let i = 0; i < 4; i++) { const c = LC.generate((20261009 + s) * 10 + i, { n: 7, turns: 5 + (i % 2), cats: 3, double: 0.3, fixedShare: 0.2, blockers: 3, budget: 200000, attempts: 120 }); if (c) best = c; }
+  if (best) made++;
+}
 const per = (Date.now() - g0) / 10;
 ok(made === 10, `daily generation succeeded ${made}/10`);
-ok(per < 1500, `daily generation ${per.toFixed(0)} ms each`);
+ok(per < 2500, `daily generation ${per.toFixed(0)} ms each`);
 console.log(`${pass} passed, ${fail} failed · ${levels.length} levels re-solved (slowest ${worst} ms) · daily gen ~${per.toFixed(0)} ms`);
 process.exit(fail ? 1 : 0);
