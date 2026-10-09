@@ -152,10 +152,11 @@ function playAd(reward){
 }
 
 /* Home */
-function renderHome(){$('#playCamp').textContent='Level '+store.get('campLevel',1);$('#playArrows').textContent='Level '+store.get('arLevel',1);$('#muteBtn').textContent=muted?'Sound off':'Sound on';updateHints()}
+const APP_BASE=document.body.dataset.sw.replace('sw.js','');
+function renderHome(){$('#playCamp').textContent='Level '+store.get('campLevel',1);$('#playArrows').textContent='Play';$('#muteBtn').textContent=muted?'Sound off':'Sound on';updateHints()}
 $('#playCamp').onclick=()=>startCamp(store.get('campLevel',1),false);
 $('#playDaily').onclick=()=>startCamp(0,true);
-$('#playArrows').onclick=()=>startArrows(store.get('arLevel',1));
+$('#playArrows').onclick=()=>{location.href=(APP_BASE||'')+'slide-out/'};
 $('#muteBtn').onclick=()=>{muted=!muted;store.set('muted',muted);renderHome();tone(660)};
 
 /* ================= Campsite ================= */
