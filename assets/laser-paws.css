@@ -7,7 +7,8 @@
   /* board */
   --board:#EFDDC3; --tile1:#FFF8EE; --tile2:#F7EADA; --token:#FFFDF8; --token-fixed:#EBDCC8; --token-edge:#DCC6A8;
   --mirror:#A9D8EE; --mirror-sheen:#F4FBFF; --mirror-back:#9E8B78; --couch:#E9A47C; --couch-dark:#C97F59;
-  --beam:#FF3B4E; --beam-glow:#FF8C96; --laser:#8E7CC3; --laser-tip:#5E4E96; --valid:#BFE5C8; --tray:#F1E2CB;
+  --beam:#FF3B4E; --beam-glow:#FF8C96; --blue:#3D8BFF; --blue-glow:#9CC6FF; --green:#22B45A; --green-glow:#97E2AE;
+  --glass:#9FDCE6; --glass-edge:#4FAFC0; --portal1:#9B7BE0; --portal2:#3FB8A8; --bowl:#F7B6C4; --bowl-dark:#DC8199; --kibble:#9A6236; --laser:#8E7CC3; --laser-tip:#5E4E96; --valid:#BFE5C8; --tray:#F1E2CB;
   --display:"Fredoka","Nunito",ui-rounded,system-ui,sans-serif; --body:"Nunito",ui-rounded,system-ui,sans-serif;
   color-scheme:light;
 }

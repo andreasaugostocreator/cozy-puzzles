@@ -156,7 +156,8 @@ function toast(html) { const d = document.createElement('div'); d.className = 't
 
 /* =================== Drawing (all placeholder vector art; one cell = s px) =================== */
 const C = {}; // colours, read from CSS tokens
-function readColors() { for (const k of ['board', 'tile1', 'tile2', 'token', 'token-fixed', 'token-edge', 'mirror', 'mirror-sheen', 'mirror-back', 'couch', 'couch-dark', 'beam', 'beam-glow', 'laser', 'laser-tip', 'valid', 'tray', 'ink', 'muted', 'shadow', 'gold', 'surface', 'accent', 'mint', 'sky']) C[k] = tok('--' + k); }
+function readColors() { for (const k of ['board', 'tile1', 'tile2', 'token', 'token-fixed', 'token-edge', 'mirror', 'mirror-sheen', 'mirror-back', 'couch', 'couch-dark', 'beam', 'beam-glow', 'laser', 'laser-tip', 'valid', 'tray', 'ink', 'muted', 'shadow', 'gold', 'surface', 'accent', 'mint', 'sky', 'blue', 'blue-glow', 'green', 'green-glow', 'glass', 'glass-edge', 'portal1', 'portal2', 'bowl', 'bowl-dark', 'kibble']) C[k] = tok('--' + k); }
+const beamColors = col => [[C.beam, C['beam-glow']], [C.blue, C['blue-glow']], [C.green, C['green-glow']]][col || 0];
 function rr(ctx, cx, cy, w, h, r) { ctx.beginPath(); ctx.moveTo(cx - w / 2 + r, cy - h / 2); ctx.arcTo(cx + w / 2, cy - h / 2, cx + w / 2, cy + h / 2, r); ctx.arcTo(cx + w / 2, cy + h / 2, cx - w / 2, cy + h / 2, r); ctx.arcTo(cx - w / 2, cy + h / 2, cx - w / 2, cy - h / 2, r); ctx.arcTo(cx - w / 2, cy - h / 2, cx + w / 2, cy - h / 2, r); ctx.closePath(); }
 const box = (ctx, cx, cy, w, h, r, fill) => { rr(ctx, cx, cy, w, h, r); ctx.fillStyle = fill; ctx.fill(); };
 function drawToken(ctx, x, y, s, fixed) {
@@ -172,6 +173,56 @@ function drawMirror(ctx, x, y, s, kind, angle) {
   box(ctx, 0, -T / 4, L, T / 2, T / 4, C.mirror); // shiny face (top-left at rotation 0)
   box(ctx, -L * 0.05, -T * 0.33, L * 0.68, T * 0.1, T * 0.05, C['mirror-sheen']);
   if (kind === 'double') box(ctx, L * 0.05, T * 0.33, L * 0.68, T * 0.1, T * 0.05, C['mirror-sheen']);
+  ctx.restore();
+}
+/** Glass vase: the pane through it shows which diagonal bends the light (like a mirror, but light also passes). */
+function drawSplitter(ctx, x, y, s, angle) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.globalAlpha = 0.55; ctx.fillStyle = C.glass;
+  ctx.beginPath(); ctx.ellipse(0, s * 0.07, s * 0.25, s * 0.25, 0, 0, 7); ctx.fill();
+  box(ctx, 0, -s * 0.2, s * 0.16, s * 0.14, s * 0.05, C.glass);
+  ctx.globalAlpha = 1; ctx.strokeStyle = C['glass-edge']; ctx.lineWidth = Math.max(1.5, s * 0.025);
+  ctx.beginPath(); ctx.ellipse(0, s * 0.07, s * 0.25, s * 0.25, 0, 0, 7); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0, -s * 0.27, s * 0.11, s * 0.035, 0, 0, 7); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.ellipse(-s * 0.12, -s * 0.02, s * 0.04, s * 0.09, 0.4, 0, 7); ctx.fill();
+  ctx.rotate(angle - Math.PI / 4); ctx.lineCap = 'round';
+  ctx.strokeStyle = C['glass-edge']; ctx.lineWidth = s * 0.08; ctx.beginPath(); ctx.moveTo(-s * 0.37, 0); ctx.lineTo(s * 0.37, 0); ctx.stroke();
+  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = s * 0.03; ctx.stroke();
+  ctx.restore();
+}
+/** Coloured glass: tints the beam passing through it. */
+function drawFilter(ctx, x, y, s, kind) {
+  const col = kind === 'fblue' ? C.blue : C.green;
+  ctx.save(); ctx.translate(x, y);
+  ctx.globalAlpha = 0.55; box(ctx, 0, 0, s * 0.56, s * 0.56, s * 0.12, col); ctx.globalAlpha = 1;
+  rr(ctx, 0, 0, s * 0.56, s * 0.56, s * 0.12); ctx.lineWidth = Math.max(1.5, s * 0.04); ctx.strokeStyle = col; ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = s * 0.045; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-s * 0.16, s * 0.07); ctx.lineTo(s * 0.06, -s * 0.15); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-s * 0.03, s * 0.15); ctx.lineTo(s * 0.13, -s * 0.01); ctx.stroke();
+  ctx.restore();
+}
+/** Food bowl with an arrow: the beam has to cross this cell going that way. Gold when it does. */
+function drawBowl(ctx, x, y, s, d, met, t) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.save(); ctx.rotate(DIR_ANGLE[d]); ctx.globalAlpha = met ? 1 : 0.6; ctx.fillStyle = met ? C.gold : C.muted;
+  ctx.beginPath(); ctx.moveTo(s * 0.45, 0); ctx.lineTo(s * 0.24, -s * 0.17); ctx.lineTo(s * 0.24, -s * 0.06); ctx.lineTo(-s * 0.43, -s * 0.06);
+  ctx.lineTo(-s * 0.43, s * 0.06); ctx.lineTo(s * 0.24, s * 0.06); ctx.lineTo(s * 0.24, s * 0.17); ctx.closePath(); ctx.fill(); ctx.restore();
+  if (met) { ctx.globalAlpha = 0.35 + 0.2 * Math.sin(t / 200); ctx.fillStyle = C.gold; ctx.beginPath(); ctx.arc(0, s * 0.06, s * 0.36, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+  ctx.fillStyle = C['bowl-dark']; ctx.beginPath(); ctx.moveTo(-s * 0.28, s * 0.04); ctx.quadraticCurveTo(0, s * 0.36, s * 0.28, s * 0.04); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = C.bowl; ctx.beginPath(); ctx.ellipse(0, s * 0.04, s * 0.28, s * 0.09, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = C.kibble; for (const [kx, ky] of [[-0.12, 0.03], [-0.03, 0.01], [0.07, 0.04], [0.14, 0.02], [0.02, 0.06]]) { ctx.beginPath(); ctx.arc(s * kx, s * ky, s * 0.035, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+/** Cat flap. Flaps come in matching-colour pairs: in one, out of the other. */
+function drawPortal(ctx, x, y, s, i, t) {
+  const col = [C.portal1, C.portal2, C.gold][i % 3];
+  ctx.save(); ctx.translate(x, y);
+  box(ctx, 0, 0, s * 0.8, s * 0.8, s * 0.24, col);
+  ctx.fillStyle = '#2B2238'; ctx.beginPath(); ctx.ellipse(0, s * 0.03, s * 0.27, s * 0.29, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = col; ctx.lineWidth = s * 0.035; ctx.lineCap = 'round';
+  for (let j = 0; j < 3; j++) { const a = t / 500 + j * 2.1; ctx.beginPath(); ctx.arc(0, s * 0.03, s * (0.07 + j * 0.065), a, a + 2.2); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  for (const [px, py, pr] of [[0, -0.31, 0.035], [-0.07, -0.335, 0.022], [0.07, -0.335, 0.022]]) { ctx.beginPath(); ctx.arc(s * px, s * py, s * pr, 0, 7); ctx.fill(); }
   ctx.restore();
 }
 function drawCouch(ctx, x, y, s) {
@@ -215,11 +266,13 @@ function ears(ctx, hx, hy, r, color, inner) {
   }
 }
 /** A cat. `awake` 0..1 blends nothing (the poses differ); `pop` is the wake-up bounce 0..1; `t` drives idle motion. */
-function drawCat(ctx, x, y, s, breed, awake, t, pop = 0, hop = 0) {
+function drawCat(ctx, x, y, s, breed, awake, t, pop = 0, hop = 0, collar = null) {
   const B = breed, earColor = B.points ? B.dark : B.fur;
   ctx.save(); ctx.translate(x, y - hop * s * 0.3);
   const sc = 1 + Math.sin(pop * Math.PI) * 0.22; ctx.scale(sc, sc);
   ctx.fillStyle = C.shadow; ctx.beginPath(); ctx.ellipse(0, s * 0.22 + hop * s * 0.3, s * 0.36 * (1 - hop * 0.3), s * 0.11, 0, 0, 7); ctx.fill();
+  if (collar) { ctx.globalAlpha = 0.35; ctx.fillStyle = collar; ctx.beginPath(); ctx.ellipse(0, s * 0.22 + hop * s * 0.3, s * 0.42, s * 0.15, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+  const band = (cx, cy, r, a0, a1) => { if (!collar) return; ctx.strokeStyle = collar; ctx.lineWidth = s * 0.055; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(cx, cy, r * 0.96, a0, a1); ctx.stroke(); ctx.fillStyle = C.gold; ctx.beginPath(); ctx.arc(cx + r * 0.96 * Math.cos((a0 + a1) / 2), cy + r * 0.96 * Math.sin((a0 + a1) / 2) + s * 0.03, s * 0.04, 0, 7); ctx.fill(); };
   if (!awake) {
     // Curled up asleep, breathing.
     const br = 1 + Math.sin(t / 700) * 0.025;
@@ -231,6 +284,7 @@ function drawCat(ctx, x, y, s, breed, awake, t, pop = 0, hop = 0) {
     const r = s * 0.17, hx = -s * 0.18, hy = s * 0.04;
     ears(ctx, hx, hy, r, earColor);
     ctx.fillStyle = B.fur; ctx.beginPath(); ctx.arc(hx, hy, r, 0, 7); ctx.fill();
+    band(hx, hy, r, Math.PI * 0.3, Math.PI * 0.85);
     if (B.points) { ctx.fillStyle = B.dark; ctx.globalAlpha = 0.45; ctx.beginPath(); ctx.ellipse(hx, hy + r * 0.25, r * 0.5, r * 0.4, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
     ctx.strokeStyle = B.fur === '#3B3540' || B.fur === '#4A4448' || B.fur === '#6B4A3A' ? '#E8DCCB' : C.ink; ctx.lineWidth = Math.max(1, r * 0.12);
     for (const ex of [-r * 0.4, r * 0.35]) { ctx.beginPath(); ctx.moveTo(hx + ex - r * 0.2, hy - r * 0.05); ctx.quadraticCurveTo(hx + ex, hy + r * 0.15, hx + ex + r * 0.2, hy - r * 0.05); ctx.stroke(); }
@@ -250,6 +304,7 @@ function drawCat(ctx, x, y, s, breed, awake, t, pop = 0, hop = 0) {
     const r = s * 0.19, hy = -s * 0.13;
     ears(ctx, 0, hy, r, earColor, B.points ? null : '#F7C9C0');
     ctx.fillStyle = B.fur; ctx.beginPath(); ctx.arc(0, hy, r, 0, 7); ctx.fill();
+    band(0, hy, r, Math.PI * 0.22, Math.PI * 0.78);
     if (B.patch) { ctx.fillStyle = B.patch; ctx.beginPath(); ctx.arc(r * 0.45, hy - r * 0.35, r * 0.42, 0, 7); ctx.fill(); }
     if (B.points) { ctx.fillStyle = B.dark; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.ellipse(0, hy + r * 0.25, r * 0.55, r * 0.45, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
     if (B.stripes) { ctx.strokeStyle = B.dark; ctx.lineWidth = s * 0.025; for (const dx of [-0.25, 0, 0.25]) { ctx.beginPath(); ctx.moveTo(dx * r, hy - r * 0.95); ctx.lineTo(dx * r * 0.8, hy - r * 0.6); ctx.stroke(); } }
@@ -382,7 +437,8 @@ function showLevels() {
     const sec = document.createElement('div'); sec.className = 'chapter';
     const head = document.createElement('div'); head.className = 'chapter-head' + (locked ? ' locked' : '');
     head.appendChild(miniCat(BREEDS[ch % BREEDS.length], !locked, 52));
-    head.insertAdjacentHTML('beforeend', `<div><h3>Chapter ${ch + 1}</h3><p>${locked ? 'Locked' : `${BREEDS[ch % BREEDS.length].name} · ${stars}/${(last - first + 1) * 3} stars`}</p></div>`);
+    const fresh = ['glass vases', 'food bowls & cat flaps', 'coloured glass'][ch] || '';
+    head.insertAdjacentHTML('beforeend', `<div><h3>Chapter ${ch + 1}</h3><p>${locked ? (fresh ? `Locked · new: ${fresh}` : 'Locked') : `${BREEDS[ch % BREEDS.length].name} · ${stars}/${(last - first + 1) * 3} stars${fresh ? ` · new: ${fresh}` : ''}`}</p></div>`);
     sec.appendChild(head);
     if (!locked) {
       let h = '<div class="lv-grid">';
@@ -413,7 +469,11 @@ document.addEventListener('click', e => { const b = e.target.closest('button'); 
   if (b.dataset.lv) start(+b.dataset.lv); else if (b.hasAttribute('data-home')) { closeSheet(); go('home'); } });
 $('#btnPlay').onclick = () => start(Math.min(P.level, LEVELS.length));
 $('#btnLevels').onclick = showLevels;
-$('#btnDaily').onclick = () => start(0, true);
+let DAILY = null;
+$('#btnDaily').onclick = async () => {
+  if (!DAILY) { try { DAILY = await (await fetch('../assets/laser-daily.json')).json(); } catch (e) { DAILY = {}; } }
+  start(0, true);
+};
 $('#btnCats').onclick = showCats;
 $('#btnSettings').onclick = settings;
 
@@ -444,6 +504,12 @@ function heroLoop() {
 /* =================== Game =================== */
 const G = { vis: {}, cats: {} };
 const cv = $('#lpCanvas'), ctx = cv.getContext('2d');
+const INTRO_TIP = {
+  splitter: 'New: the glass vase splits the light. The beam goes straight through and bends at the same time.',
+  bowl: 'New: food bowls. The beam has to cross each bowl the way its arrow points.',
+  portal: 'New: cat flaps come in pairs. The beam goes into one and comes out of the other.',
+  filter: 'New: coloured glass tints the beam. Cats with a collar only wake for their colour.',
+};
 const COACH = {
   1: 'Drag the mirror onto the board, then tap it to turn it. Wake every cat!',
   2: 'Two mirrors, two turns. Cats let the beam pass through.',
@@ -456,11 +522,13 @@ function start(n, daily = false) {
   closeSheet();
   let L;
   if (daily) {
+    if ((!dailyLevel || dailyLevel.day !== dayKey()) && DAILY && DAILY[dayKey()]) dailyLevel = Object.assign(DAILY[dayKey()], { day: dayKey(), name: 'Daily' });
     if (!dailyLevel || dailyLevel.day !== dayKey()) {
-      // Same puzzle for everyone today: the hardest of a few seeded 7×7 candidates.
+      // Not in the pre-built file: make it here, seeded by the date so everyone still gets the same one.
       const seed = daySeed();
       for (let i = 0; i < 4; i++) {
-        const c = LC.generate(seed * 10 + i, { n: 7, turns: 5 + (i % 2), cats: 3, double: 0.3, fixedShare: 0.2, blockers: 3, budget: 200000, attempts: 120 });
+        const special = [{ bowls: 1 }, { portals: 1 }, { filters: 1 }, { splitter: 0.35, maxSplit: 1 }][seed % 4];
+        const c = LC.generate(seed * 10 + i, { n: 7, turns: 5 + (i % 2), cats: 3, double: 0.3, fixedShare: 0.2, blockers: 3, budget: 200000, attempts: 120, ...special });
         if (c && (!L || c.nodes * c.tray.length > L.nodes * L.tray.length)) L = c;
       }
       L = L || LC.generate(seed, { n: 6, turns: 4, cats: 3, double: 0.25, fixedShare: 0.3, blockers: 2 });
@@ -472,10 +540,11 @@ function start(n, daily = false) {
   Object.assign(G, { n, daily, L, S: LC.newState(L), hist: [], moves: 0, hintsUsed: 0, done: false, drag: null, pending: null, hintAt: null, t0: Date.now(), vis: {}, cats: {} });
   G.breed = daily ? BREEDS[daySeed() % breedsUnlocked()] : BREEDS[chapterOf(n) % BREEDS.length];
   G.trace = LC.traceState(L, G.S);
-  for (const [c, r] of L.cats) G.cats[r * L.w + c] = { awake: G.trace.hits.has(r * L.w + c), since: 0, hop: 0 };
+  for (const [c, r, col] of L.cats) G.cats[r * L.w + c] = { awake: G.trace.hits.has(r * L.w + c), since: 0, hop: 0, col };
+  G.bowlsMet = new Set();
   $('#gTitle').textContent = daily ? 'Daily Puzzle' : 'Level ' + n;
   $('#gSub').innerHTML = `${I.star}${I.star}${I.star} in ${LC.parMoves(L) + 2} moves, no hints`;
-  const tip = daily ? '' : COACH[n] || ''; $('#coach').hidden = !tip; $('#coach').textContent = tip;
+  const tip = daily ? '' : (L.intro ? INTRO_TIP[L.intro] : COACH[n]) || ''; $('#coach').hidden = !tip; $('#coach').textContent = tip;
   go('game'); hud(); updateMoves(); snapVisuals();
 }
 function updateMoves() { $('#gMoves').textContent = G.moves; $('#btnUndo').disabled = !G.hist.length; }
@@ -528,6 +597,11 @@ function afterChange() {
   syncRotations();
   const prev = G.trace; G.trace = LC.traceState(G.L, G.S);
   wakeCats(G.trace, true);
+  for (const b of G.L.bowls || []) {
+    const id = b.r * G.L.w + b.c, met = G.trace.passes.has(id * 4 + b.d);
+    if (met && !G.bowlsMet.has(id)) { Sound.bell(pent(11), { vol: 0.08 }); const [bx, by] = cellXY(b.c, b.r), r = cv.getBoundingClientRect(); FX.burst(r.left + bx, r.top + by, [C.gold, '#fff'], 10, 160); }
+    met ? G.bowlsMet.add(id) : G.bowlsMet.delete(id);
+  }
   updateMoves();
   if (!G.done && LC.isSolved(G.L, G.S, G.trace)) win();
 }
@@ -674,18 +748,19 @@ function newBreed(b, then) {
 /* Drawing the board */
 let rafOn = false, lastT = 0;
 function loop() { if (rafOn) return; rafOn = true; lastT = performance.now(); const step = () => { if ($('#game').hidden) { rafOn = false; return; } draw(performance.now()); requestAnimationFrame(step); }; requestAnimationFrame(step); }
-function drawBeamPath(x, pts, s, t, dot) {
+function drawBeamPath(x, pts, s, t, dot, col = 0) {
+  const [core, glow] = beamColors(col);
   const pulse = 0.75 + 0.25 * Math.sin(t / 260);
   x.lineCap = 'round'; x.lineJoin = 'round';
   const path = () => { x.beginPath(); pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])); };
-  x.globalAlpha = 0.28 * pulse; x.strokeStyle = C['beam-glow']; x.lineWidth = s * 0.28; path(); x.stroke();
+  x.globalAlpha = 0.28 * pulse; x.strokeStyle = glow; x.lineWidth = s * 0.28; path(); x.stroke();
   x.globalAlpha = 0.5; x.lineWidth = s * 0.14; path(); x.stroke();
-  x.globalAlpha = 1; x.strokeStyle = C.beam; x.lineWidth = Math.max(2, s * 0.07); path(); x.stroke();
+  x.globalAlpha = 1; x.strokeStyle = core; x.lineWidth = Math.max(2, s * 0.07); path(); x.stroke();
   x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = Math.max(1, s * 0.022); path(); x.stroke();
   if (dot) {
     const [ex, ey] = pts[pts.length - 1];
-    x.fillStyle = C['beam-glow']; x.globalAlpha = 0.45; x.beginPath(); x.arc(ex, ey, s * (0.14 + 0.05 * Math.sin(t / 180)), 0, 7); x.fill();
-    x.globalAlpha = 1; x.fillStyle = C.beam; x.beginPath(); x.arc(ex, ey, s * 0.075, 0, 7); x.fill();
+    x.fillStyle = glow; x.globalAlpha = 0.45; x.beginPath(); x.arc(ex, ey, s * (0.14 + 0.05 * Math.sin(t / 180)), 0, 7); x.fill();
+    x.globalAlpha = 1; x.fillStyle = core; x.beginPath(); x.arc(ex, ey, s * 0.075, 0, 7); x.fill();
   }
 }
 function draw(now) {
@@ -701,14 +776,17 @@ function draw(now) {
   L.tray.forEach((_, i) => { const [sx, sy] = slotXY(i), side = s * G.traySc * 0.84; rr(x, sx, sy, side, side, side * 0.24); x.lineWidth = 2; x.strokeStyle = C['token-edge']; x.stroke(); });
   // Beam (under the pieces)
   const tr = G.preview || G.trace;
-  for (const p of tr.paths) if (p.pts.length > 1) drawBeamPath(x, p.pts.map(([px, py]) => [ox + px * s, oy + py * s]), s, now, true);
+  for (const p of tr.paths) if (p.pts.length > 1) drawBeamPath(x, p.pts.map(([px, py]) => [ox + px * s, oy + py * s]), s, now, p.end.t !== 'filter' && p.end.t !== 'portal', p.col);
+  // Floor features over the beam: cat flaps and food bowls
+  (L.portals || []).forEach(([a, b, c2, d2], i) => { drawPortal(x, ...cellXY(a, b), s, i, now); drawPortal(x, ...cellXY(c2, d2), s, i, now); });
+  (L.bowls || []).forEach(b => drawBowl(x, ...cellXY(b.c, b.r), s, b.d, tr.passes.has((b.r * L.w + b.c) * 4 + b.d), now));
   // Laser and cats
   drawLaser(x, ...cellXY(L.src.c, L.src.r), s, L.src.d, now);
   for (const k in G.cats) {
     const c = G.cats[k], [cx, cy] = cellXY(+k % L.w, Math.floor(+k / L.w));
     const pop = c.awake && now - c.since < 350 ? (now - c.since) / 350 : 0;
     const hp = c.hop && now > c.hop && now < c.hop + 420 ? Math.sin((now - c.hop) / 420 * Math.PI) : 0;
-    drawCat(x, cx, cy, s, G.breed, c.awake, now + +k * 377, pop, hp);
+    drawCat(x, cx, cy, s, G.breed, c.awake, now + +k * 377, pop, hp, c.col ? beamColors(c.col)[0] : null);
   }
   // Pieces
   for (const key of visKeys()) {
@@ -734,7 +812,7 @@ function drawPiece(x, key, v, s, now, lifted) {
   if (lifted) { x.shadowColor = C.shadow; x.shadowBlur = s * 0.3; x.shadowOffsetY = s * 0.12; }
   drawToken(x, 0, 0, s, fixed);
   x.shadowColor = 'transparent';
-  if (k === 'blocker') drawCouch(x, 0, 0, s); else drawMirror(x, 0, 0, s, k, v.ang);
+  if (k === 'blocker') drawCouch(x, 0, 0, s); else if (k === 'splitter') drawSplitter(x, 0, 0, s, v.ang); else if (LC.FILTER[k]) drawFilter(x, 0, 0, s, k); else drawMirror(x, 0, 0, s, k, v.ang);
   if (fixed) drawBadge(x, 0, 0, s, G.L.fixed[i].rotatable ? 'rotate' : 'lock');
   x.restore();
 }
@@ -748,5 +826,5 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').c
 fetch('../assets/laser-levels.json').then(r => r.json()).then(levels => {
   LEVELS = levels;
   const m = location.hash.match(/^#(\d+)$/);
-  if (m) start(+m[1]); else if (location.hash === '#daily') start(0, true); else if (location.hash === '#levels') showLevels(); else if (location.hash === '#cats') showCats(); else go('home');
+  if (m) start(+m[1]); else if (location.hash === '#daily') $('#btnDaily').onclick(); else if (location.hash === '#levels') showLevels(); else if (location.hash === '#cats') showCats(); else go('home');
 }).catch(() => { go('home'); toast('Could not load the levels. Check your connection and reopen.'); });

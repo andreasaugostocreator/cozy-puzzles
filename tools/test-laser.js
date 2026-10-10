@@ -25,6 +25,24 @@ t = LC.trace(lvl({ cats: [[1, 2], [3, 2], [0, 0]] }), new Map()); eq(t.hits.size
 t = LC.trace(lvl({ src: { c: 2, r: 2, d: 1 } }), pieces({ 14: { k: 'mirror', rot: 3 }, 24: { k: 'mirror', rot: 0 }, 22: { k: 'mirror', rot: 1 } }));
 eq(t.paths[0].end.t, 'source', 'beam back into the laser stops');
 
+// New pieces
+eq(LC.outgoing('splitter', 0, 1), [1, 0], 'vase: straight on and bends');
+eq(LC.outgoing('fblue', 0, 2), [2], 'glass lets the beam through');
+t = LC.trace(lvl({ cats: [[4, 2], [2, 0]] }), pieces({ 12: { k: 'splitter', rot: 0 } }));
+eq(t.paths.length, 2, 'vase makes two beams'); eq(t.hits.size, 2, 'both beams wake cats');
+t = LC.trace(lvl({ cats: [[4, 2, 1], [1, 2, 1]] }), pieces({ 12: { k: 'fblue', rot: 0 } }));
+ok(t.hits.has(14) && !t.hits.has(11), 'blue cat wakes only for blue light');
+eq(t.paths.map(p => p.col), [0, 1], 'beam turns blue after the glass');
+t = LC.trace(lvl({ cats: [[3, 0]], portals: [[2, 2, 3, 4]] }), new Map());
+ok(t.vset.has(23) && t.vset.has(24) && !t.vset.has(13), 'cat flap teleports the beam');
+t = LC.trace(lvl({ cats: [[3, 4]], portals: [[2, 2, 2, 4]] }), new Map());
+ok(t.hits.has(23), 'beam keeps its direction after the flap');
+const bowlL = lvl({ cats: [[4, 2]], bowls: [{ c: 2, r: 2, d: 1 }] });
+ok(LC.goalMet(bowlL, LC.trace(bowlL, new Map())), 'bowl crossed the right way');
+const bowlWrong = lvl({ cats: [[4, 2]], bowls: [{ c: 2, r: 2, d: 3 }] });
+ok(!LC.goalMet(bowlWrong, LC.trace(bowlWrong, new Map())), 'bowl crossed the wrong way');
+ok(!LC.info(bowlL).playable.has(12), 'no pieces on a bowl');
+
 // Board rules
 const L4 = levels[3];
 let S = LC.newState(L4);
